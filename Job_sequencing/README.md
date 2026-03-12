@@ -1,0 +1,1 @@
+# Turime N darbų, kurių atlikimo trukmė t1, t2,..tN­, kurių baigimo terminai d1, d2,..dN. Jei darbai neatliekami laiku, bauda atitinkamai b1, b2,..bN. Kokia eilės tvarka atlikti darbus, kad bauda būtų minimali.
