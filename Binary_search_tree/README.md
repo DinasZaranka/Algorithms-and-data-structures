@@ -30,3 +30,5 @@ Windows aplinkoje galima kompiliuoti atidarius GO.cmd
 
 labas **dinai** reikia kompiuteri UZRAKINTI
 pone zagune, parasykite dinui 2
+
+-Dinas: Persikau pamates tai tikrai... Kitam kartui zinosiu :D
