@@ -10,19 +10,30 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    FILE *inputFile;
+    int searchMode = 0;
+    // Searching for file
+    FILE *inputFile = stdin;
     for(int i = 1; i < argc; i++){
-        if(strcmp(argv[i],"-") == 0){
-        inputFile = stdin;
-        } else {
-            inputFile = fopen(argv[i], "r");
+        if(strcmp(argv[i],"-mode") == 0 || strcmp(argv[i], "-timeout") == 0){
+            continue;
+        } else if(strcmp(argv[i],"-") == 0){
+            inputFile = stdin;
             if(inputFile == NULL){
-                inputFile = stdin;
-                printf("ERROR: Programa nesugebėjo atidaryti failo");
+                printf("ERROR: Programa nesugebėjo atidaryti failo\n");
                 return 1;
             }
+            break;
+        } else if(argv[i][0] != '-'){
+            inputFile = fopen(argv[i], "r");
+            if(inputFile == NULL){
+                printf("ERROR: Programa nesugebėjo atidaryti failo\n");
+                return 1;
+            }
+            break;
         }
+    }
     
+    for(int i = 0; i < argc; i++){
         if(strcmp(argv[i],"-mode") == 0){
             if(i+1 >= argc){
                 fprintf(stderr, "Usage: %s [-|failo_vardas] [-mode [fullSearch|firstMatchSearch|heuristic heuristic_number]] [-timeout miliseconds]\n", argv[0]);
@@ -31,8 +42,9 @@ int main(int argc, char* argv[]){
             
             if(strcmp(argv[i+1],"fullSearch") == 0){
                 printf("Full search mode\n");
+                searchMode = 0;
             } else if(strcmp(argv[i+1], "firstMatchSearch") == 0){
-                printf("Algorithm stops at the first Match\n");
+                searchMode = 1;
             } else if(strcmp(argv[i+1], "heuristic") == 0){
                 printf("euristika dar nerealizuota\n");
                 return 1;
@@ -64,13 +76,22 @@ int main(int argc, char* argv[]){
     }
     
 
-    printf("--Darbai kurie turi būti atlikti--\n");
+    printf("==================================Pradiniai duomenys===================================\n");
+    printf("Darbai kurie turi būti atliekami:\n");
     for(int i = 0; i < n; i++){
-        printf("Darbas Nr. %d - Atlikimo trukmė: %d, Baigimo terminas: %d, Bauda už neatliktą darbą: %d\n", jobs[i].jobNr, jobs[i].timeToComplete,jobs[i].deadline,jobs[i].penalty);
+        printf(" - Darbas Nr. %d - Atlikimo trukmė: %d, Baigimo terminas: %d, Bauda už neatliktą darbą: %d\n", jobs[i].jobNr, jobs[i].timeToComplete,jobs[i].deadline,jobs[i].penalty);
     }
     printf("\n");
+    printf("Paieškos rėžimas: ");
+    if(searchMode == 0){
+        printf("fullSearch\n");
+    } else if (searchMode == 1){
+        printf("firstMatchSearch\n");
+    }
+    printf("Paieškos algoritmas: Branch and Bound\n");
+    printf("Skaičiavimų laiko apribojimas: \n");
 
-    branchAndBoundCalculation(jobs,n);
+    branchAndBoundCalculation(jobs,n,searchMode);
 
 
     free(jobs);

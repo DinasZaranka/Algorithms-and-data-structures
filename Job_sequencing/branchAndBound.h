@@ -62,8 +62,10 @@ typedef struct Job
  *   
  * 
  */
-void branchAndBoundCalculation(Job *jobs, int n);
+void branchAndBoundCalculation(Job *jobs, int n,int searchMode);
 
 int findMaxDeadline(Job *job, int n);
+
+int findAllSolutionCount(int n);
 
 #endif

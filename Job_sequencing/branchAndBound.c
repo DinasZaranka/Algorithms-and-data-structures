@@ -33,8 +33,7 @@ Node pop(Stack *stack) {
     return stack->arr[stack->top--];
 }
 
-
-void branchAndBoundCalculation(Job *jobs, int n){
+void branchAndBoundCalculation(Job *jobs, int n,int searchMode){
     
     int bestSchedule[MAX_JOB_COUNT];
     int bestPenalty = INT_MAX;
@@ -51,6 +50,8 @@ void branchAndBoundCalculation(Job *jobs, int n){
         jobsWithPenalty[i] = -1;
     }
     
+    // Stat variables
+    int solutionsChecked = 0;
     //Create stack that holds all the solutions
     Stack stack;
     initializeStack(&stack);
@@ -63,6 +64,7 @@ void branchAndBoundCalculation(Job *jobs, int n){
 
         // Checking whether it is a complete solution
         if(current.level == n){
+            solutionsChecked++;
             if(current.penaltyCost < bestPenalty){
                 bestPenalty = current.penaltyCost;
                 int finishTime = 0;
@@ -70,8 +72,8 @@ void branchAndBoundCalculation(Job *jobs, int n){
                     bestSchedule[i] = current.schedule[i];
                     
                     // Finding jobs that exceed the deadline and penalty will need to be paid
-                    finishTime += jobs[i].timeToComplete;
-                    if(finishTime > findMaxDeadline(jobs,n)){
+                    finishTime += jobs[bestSchedule[i]].timeToComplete;
+                    if(finishTime > jobs[bestSchedule[i]].deadline){
                         jobsWithPenalty[i] = i;
                     } else {
                         jobsWithPenalty[i] = -1;
@@ -79,6 +81,11 @@ void branchAndBoundCalculation(Job *jobs, int n){
                 }
             }
             
+            // firstMatchSearch
+            if(searchMode == 1){
+                break;
+            }
+
         }
 
         // Creating all possible solutions
@@ -108,8 +115,14 @@ void branchAndBoundCalculation(Job *jobs, int n){
 
     }
 
+    printf("======================================Sprendimas=======================================\n");
+    if(searchMode == 0){
+        printf("Darbo atlikimo tvarka, su kuria bauda mažiausia:\n");
+    } else if (searchMode == 1){
+        printf("Pirma surasta darbo atlikimo tvarka:\n");
+    }
+
     if(bestPenalty > 0){
-        printf("--Darbo atlikimo tvarka, su kuria bauda mažiausia--\n");
         for(int i = 0; i < n; i++){
             if(jobsWithPenalty[i] == i){
                 int penalty;
@@ -118,20 +131,22 @@ void branchAndBoundCalculation(Job *jobs, int n){
                         penalty = jobs[j].penalty;
                     }
                 }
-                printf("Darbas Nr. %d atliktas paveluotai, bauda: %d\n",bestSchedule[i]+1, penalty);
+                printf(" %d. Darbas Nr. %d atliktas paveluotai, bauda: %d\n",i+1,bestSchedule[i]+1, penalty);
             } else {
-                printf("Darbas Nr. %d atliktas laiku\n",bestSchedule[i]+1);
+                printf(" %d. Darbas Nr. %d atliktas laiku\n",i+1,bestSchedule[i]+1);
             }
         }
         printf("\nBaudų, kurias reikės sumokėti suma: %d\n", bestPenalty);
     } else {
-        printf("--Darbo atlikimo tvarka, su kuria bauda mažiausia--\n");
         for(int i = 0; i < n; i++){
-            printf("Darbas Nr. %d \n",bestSchedule[i]+1);
+            printf(" %d. Darbas Nr. %d \n",i+1,bestSchedule[i]+1);
         }
         printf("\nVisus darbus galima atlikti iki jų nurodytų terminų, jokių baudų mokėti nereikia.\n");
     }
 
+    printf("======================================Rezultatai=======================================\n");
+    printf("Iš viso variantų egzistuoja: %d\n", findAllSolutionCount(n));
+    printf("Patikrinta variantų: %d\n", solutionsChecked);
 }
 
 int findMaxDeadline(Job *job, int n){
@@ -142,4 +157,12 @@ int findMaxDeadline(Job *job, int n){
         }
     }
     return max;
+}
+
+int findAllSolutionCount(int n){
+    int factorial = 1;
+    for(int i = 1; i <=n; i++){
+        factorial *= i;
+    }
+    return factorial;
 }
