@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 #include "algorithm.h"
 
 void initializeStack(Stack *stack) {
@@ -33,14 +34,15 @@ Node pop(Stack *stack) {
     return stack->arr[stack->top--];
 }
 
-void calculate(Job *jobs, int n,int searchMode){
+void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
     
     // Stat variables
     int nodesChecked = 1;
-    int bestSchedules[100][MAX_JOB_COUNT];
+    int bestSchedules[MAX_SOLUTIONS][MAX_JOB_COUNT];
     int bestCount = 0;
     int bestPenalty = INT_MAX;
     bool jobsWithPenalty[MAX_JOB_COUNT];
+    bool timeoutReached = false;
     
     //Initialize root node
     Node root;
@@ -52,7 +54,10 @@ void calculate(Job *jobs, int n,int searchMode){
         root.schedule[i] = -1;
         jobsWithPenalty[i] = false;
     }
-
+    
+    // Initializing timer for timeout
+    clock_t startTime = clock();
+    double elapsed;
     //Create stack that holds all the solutions
     Stack stack;
     initializeStack(&stack);
@@ -60,6 +65,11 @@ void calculate(Job *jobs, int n,int searchMode){
     push(&stack,root);
 
     while(!isStackEmpty(&stack)){
+        elapsed = (double)(clock() - startTime) * 1000 / CLOCKS_PER_SEC;
+        if(timeoutMs > 0 && elapsed >= timeoutMs){
+            timeoutReached = true;
+            break;
+        }
         // Taking the next node to process
         Node current = pop(&stack);
 
@@ -128,19 +138,28 @@ void calculate(Job *jobs, int n,int searchMode){
             finishTime += jobs[jobIndex].timeToComplete;
 
             if(finishTime > jobs[jobIndex].deadline){
-                printf(" - Darbas Nr. %d paveluotas, bauda: %d\n",jobIndex+1, jobs[jobIndex].penalty);
+                printf(" %d. Darbas Nr. %d paveluotas, bauda: %d\n",i+1,jobIndex+1, jobs[jobIndex].penalty);
             } else {
-                printf(" - Darbas Nr. %d atliktas laiku\n",jobIndex+1);
+                printf(" %d. Darbas Nr. %d atliktas laiku\n",i+1,jobIndex+1);
             }
         }
 
         printf("Baudų suma: %d\n\n", bestPenalty);
     }
 
+    int AllNodesCount = countAllNodes(n);
+    float percentageChecked = ((float)nodesChecked / AllNodesCount) * 100;
     printf("======================================Rezultatai=======================================\n");
-    printf("Iš viso egzistuoja variantų:   %d\n", countAllNodes(n));
+    printf("Iš viso egzistuoja variantų:   %d\n", AllNodesCount);
     printf("Patikrinta variantų:           %d\n", nodesChecked);
     printf("Rasti sprendiniai:             %d\n", bestCount);
+    
+    if(!timeoutReached){
+        printf("Paieška baigta iki galo, išnagrinėta %.2f%% variantų\n",percentageChecked);
+    } else {
+        printf("Paieška nutraukta. Pasiektas timeout, išnagrineta %.2f%% variantų\n", percentageChecked);
+    }
+    printf("\nPrograma užtruko:  %.3f ms.\n", elapsed);
     printf("\nMažiausia bauda, kurią teks sumokėti: %d\n", bestPenalty);
 }
 

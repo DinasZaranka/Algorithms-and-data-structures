@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "algorithm.h"
 
 int main(int argc, char* argv[]){
@@ -9,6 +10,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    double timeoutMs = 0;
     int searchMode = 2;
     // Searching for file
     FILE *inputFile = stdin;
@@ -18,14 +20,14 @@ int main(int argc, char* argv[]){
         } else if(strcmp(argv[i],"-") == 0){
             inputFile = stdin;
             if(inputFile == NULL){
-                printf("ERROR: Programa nesugebėjo atidaryti failo\n");
+                fprintf(stderr, "ERROR: Programa nesugebėjo atidaryti failo\n");
                 return 1;
             }
             break;
         } else if(argv[i][0] != '-'){
             inputFile = fopen(argv[i], "r");
             if(inputFile == NULL){
-                printf("ERROR: Programa nesugebėjo atidaryti failo\n");
+                fprintf(stderr, "ERROR: Programa nesugebėjo atidaryti failo\n");
                 return 1;
             }
             break;
@@ -34,20 +36,33 @@ int main(int argc, char* argv[]){
     
     for(int i = 0; i < argc; i++){
         if(strcmp(argv[i],"-mode") == 0){
-            if(i+1 >= argc){
+            i++;
+            if(i >= argc){
                 fprintf(stderr, "Usage: %s [-|failo_vardas] [-mode [fullSearch|firstMatchSearch|heuristic heuristic_number]] [-timeout miliseconds]\n", argv[0]);
                 return 1;
             }
             
-            if(strcmp(argv[i+1],"fullSearch") == 0){
+            if(strcmp(argv[i],"fullSearch") == 0){
                 searchMode = 1;
-            } else if(strcmp(argv[i+1], "firstMatchSearch") == 0){
+            } else if(strcmp(argv[i], "firstMatchSearch") == 0){
                 searchMode = 2;
-            } else if(strcmp(argv[i+1], "heuristic") == 0){
-                printf("euristika dar nerealizuota\n");
+            } else if(strcmp(argv[i], "heuristic") == 0){
+                fprintf(stderr, "euristika dar nerealizuota\n");
                 return 1;
             } else {
-                printf("Error: nežinomas paieškos režimas!\n");
+                fprintf(stderr, "Error: nežinomas paieškos režimas!\n");
+                fprintf(stderr, "Usage: %s [-|failo_vardas] [-mode [fullSearch|firstMatchSearch|heuristic heuristic_number]] [-timeout miliseconds]\n", argv[0]);
+                return 1;
+            }
+        }
+        if(strcmp(argv[i],"-timeout") == 0){
+            i++;
+            if(i >= argc){
+                fprintf(stderr, "Usage: %s [-|failo_vardas] [-mode [fullSearch|firstMatchSearch|heuristic heuristic_number]] [-timeout miliseconds]\n", argv[0]);
+                return 1;
+            }
+            if (sscanf (argv[i], "%lf", &timeoutMs) != 1) {
+                fprintf(stderr, "Error - netinkama timeout įvestis\n");
                 fprintf(stderr, "Usage: %s [-|failo_vardas] [-mode [fullSearch|firstMatchSearch|heuristic heuristic_number]] [-timeout miliseconds]\n", argv[0]);
                 return 1;
             }
@@ -88,7 +103,7 @@ int main(int argc, char* argv[]){
     }
     printf("Skaičiavimų laiko apribojimas: \n");
 
-    calculate(jobs,n,searchMode);
+    calculate(jobs,n,searchMode,timeoutMs);
 
 
     free(jobs);

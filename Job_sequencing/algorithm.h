@@ -5,6 +5,7 @@
 
 #define MAX_STACK_SIZE 1000
 #define MAX_JOB_COUNT 10
+#define MAX_SOLUTIONS 10000
 
 /*
  * Node struktura saugo viena medzio saka.
@@ -62,7 +63,7 @@ typedef struct Job
  *   
  * 
  */
-void calculate(Job *jobs, int n,int searchMode);
+void calculate(Job *jobs, int n, int searchMode, int timeoutMs);
 
 int countAllNodes(int n);
 
