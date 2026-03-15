@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "algorithm.h"
-#include "branchAndBound.h"
+#include "algorithm.h"
 
 int main(int argc, char* argv[]){
     if (argc < 2){
@@ -10,7 +9,7 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
-    int searchMode = 0;
+    int searchMode = 2;
     // Searching for file
     FILE *inputFile = stdin;
     for(int i = 1; i < argc; i++){
@@ -41,10 +40,9 @@ int main(int argc, char* argv[]){
             }
             
             if(strcmp(argv[i+1],"fullSearch") == 0){
-                printf("Full search mode\n");
-                searchMode = 0;
-            } else if(strcmp(argv[i+1], "firstMatchSearch") == 0){
                 searchMode = 1;
+            } else if(strcmp(argv[i+1], "firstMatchSearch") == 0){
+                searchMode = 2;
             } else if(strcmp(argv[i+1], "heuristic") == 0){
                 printf("euristika dar nerealizuota\n");
                 return 1;
@@ -82,16 +80,15 @@ int main(int argc, char* argv[]){
         printf(" - Darbas Nr. %d - Atlikimo trukmė: %d, Baigimo terminas: %d, Bauda už neatliktą darbą: %d\n", jobs[i].jobNr, jobs[i].timeToComplete,jobs[i].deadline,jobs[i].penalty);
     }
     printf("\n");
-    printf("Paieškos rėžimas: ");
-    if(searchMode == 0){
-        printf("fullSearch\n");
-    } else if (searchMode == 1){
-        printf("firstMatchSearch\n");
+
+    if(searchMode == 1){
+        printf("Paieškos režimas: fullSearch\n");
+    } else if(searchMode == 2){
+        printf("Paieškos rėžimas: firstMatchSearch\n");
     }
-    printf("Paieškos algoritmas: Branch and Bound\n");
     printf("Skaičiavimų laiko apribojimas: \n");
 
-    branchAndBoundCalculation(jobs,n,searchMode);
+    calculate(jobs,n,searchMode);
 
 
     free(jobs);

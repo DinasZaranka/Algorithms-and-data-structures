@@ -5,80 +5,151 @@
 #include <limits.h>
 #include "algorithm.h"
 
-int findMaxDeadline(Job *job, int n){
-    int max = 0;
-    for(int i = 0; i < n; i++){
-        if(job[i].deadline > max){
-            max = job[i].deadline;
-        }
+void initializeStack(Stack *stack) {
+    stack->top = -1;  
+}
+
+bool isStackFull(Stack *stack) {
+    return stack->top >= MAX_STACK_SIZE - 1;  
+}
+
+bool isStackEmpty(Stack *stack) {
+    return stack->top == -1;  
+}
+
+void push(Stack *stack, Node node) {
+    if (isStackFull(stack)) {
+        printf("Stack Overflow\n");
+        return;
     }
-    return max;
+    stack->arr[++stack->top] = node;
 }
 
-int min(int num1, int num2) {
-   return (num1 < num2) ? num1 : num2;
-}
-
-int compareJobPenalty(const void* a, const void* b){
-    if(((Job*)b)->timeToComplete>1 && ((Job*)a)->timeToComplete == 1){
-        return (((Job*)b)->penalty)/(((Job*)b)->timeToComplete) - ((Job*)a)->penalty;
-    } else if (((Job*)b)->timeToComplete == 1 && ((Job*)a)->timeToComplete > 1){
-        return ((Job*)b)->penalty - (((Job*)a)->penalty)/(((Job*)a)->timeToComplete);
-    } else {
-        return ((Job*)b)->penalty - ((Job*)a)->penalty;
+Node pop(Stack *stack) {
+    if (isStackEmpty(stack)) {
+        printf("Stack Underflow\n");
     }
+
+    return stack->arr[stack->top--];
 }
 
-void reorderangeJobsByPenalty(Job *jobs, int n){
-    Job temp;
-    qsort(jobs,n,sizeof(Job),compareJobPenalty);
-}
-
-void findHeuristicOrder(Job *jobs, int n){
-    int maxDeadline = findMaxDeadline(jobs,n);
-    bool slots[maxDeadline];
-    memset(slots, 0, sizeof(slots)); //Initialize with all false values
-
-    int result[maxDeadline];
-
+void calculate(Job *jobs, int n,int searchMode){
+    
+    // Stat variables
+    int nodesChecked = 1;
+    int bestSchedules[100][MAX_JOB_COUNT];
+    int bestCount = 0;
+    int bestPenalty = INT_MAX;
+    bool jobsWithPenalty[MAX_JOB_COUNT];
+    
+    //Initialize root node
+    Node root;
+    root.penaltyCost = 0;
+    root.level = 0;
+    root.currentTime = 0;
     for(int i = 0; i < n; i++){
-        for(int j = min(maxDeadline,jobs[i].deadline); j >= 0; j--){
-            if(slots[j] == false){
-                if(jobs[i].timeToComplete > 1){
-                    int timeTaken = jobs[i].timeToComplete;
-                    int availablePlaces = 0;
-                    for(int x = j; x >= timeTaken; x--){
-                        if(slots[x] == false){
-                            availablePlaces++;
-                        }
-                    }
-                    if(availablePlaces >= timeTaken){
-                        while(timeTaken > 0){
-                            slots[j-timeTaken] = true;
-                            result[j-timeTaken] = i;
-                            printf("Scheduled Job Nr.%d in slot %d\n",jobs[i].jobNr,j-timeTaken);
-                            timeTaken--;
-                        }
-                        break;
-                    }
-                    
+        root.used[i] = 0;
+        root.schedule[i] = -1;
+        jobsWithPenalty[i] = false;
+    }
+
+    //Create stack that holds all the solutions
+    Stack stack;
+    initializeStack(&stack);
+
+    push(&stack,root);
+
+    while(!isStackEmpty(&stack)){
+        // Taking the next node to process
+        Node current = pop(&stack);
+
+        // Checking whether it is a complete solution
+        if(current.level == n){
+            int finishTime = 0;
+            bool currentJobsWithPenalty[MAX_JOB_COUNT];
+            for(int i = 0; i < n; i++){
+                // Finding jobs that exceed the deadline and penalty will need to be paid
+                finishTime += jobs[current.schedule[i]].timeToComplete;
+                if(finishTime > jobs[current.schedule[i]].deadline){
+                    currentJobsWithPenalty[i] = true;
                 } else {
-                    result[j] = i;
-                    slots[j] = true;
-                    printf("Scheduled Job Nr.%d in slot %d\n",jobs[i].jobNr,j);
-                    break;
+                    currentJobsWithPenalty[i] = false;
                 }
             }
+           
+           if(current.penaltyCost < bestPenalty){
+                bestPenalty = current.penaltyCost;
+                bestCount = 0;
+
+                memcpy(bestSchedules[bestCount], current.schedule, sizeof(int)*n);
+                bestCount++;
+            } else if(current.penaltyCost == bestPenalty){
+                memcpy(bestSchedules[bestCount], current.schedule, sizeof(int)*n);
+                bestCount++;
+            }
+
         }
+
+        // Creating all possible solutions
+        for(int i = 0; i < n; i++){
+            if(!current.used[i]){
+                Node child = current;
+                child.level = current.level + 1;
+                child.schedule[current.level] = i;
+                child.used[i] = true;
+
+                int finishTime = child.currentTime + jobs[i].timeToComplete;
+                child.currentTime = finishTime;
+
+                //If jobs can't be completed in time
+                if(finishTime>jobs[i].deadline){
+                    child.penaltyCost += jobs[i].penalty;
+                };
+
+                //If current job schedule has a higher penalty than the previous best cost, we discard it
+                if(child.penaltyCost >= bestPenalty && searchMode != 1){
+                    continue;
+                }
+                nodesChecked++;
+                push(&stack, child);
+            }
+        }
+
     }
 
-    for(int i = 0; i < maxDeadline; i++){
-        printf("time frame: [%d,%d] is reserved for Job Nr.%d\n",i,i+1,result[i]+1);
+    printf("\n======================================Sprendimai=======================================\n");
+
+    for(int s = 0; s < bestCount; s++){
+        printf("Sprendimas %d:\n", s+1);
+        int finishTime = 0;
+
+        for(int i = 0; i < n; i++){
+            int jobIndex = bestSchedules[s][i];
+            finishTime += jobs[jobIndex].timeToComplete;
+
+            if(finishTime > jobs[jobIndex].deadline){
+                printf(" - Darbas Nr. %d paveluotas, bauda: %d\n",jobIndex+1, jobs[jobIndex].penalty);
+            } else {
+                printf(" - Darbas Nr. %d atliktas laiku\n",jobIndex+1);
+            }
+        }
+
+        printf("Baudų suma: %d\n\n", bestPenalty);
     }
+
+    printf("======================================Rezultatai=======================================\n");
+    printf("Iš viso egzistuoja variantų:   %d\n", countAllNodes(n));
+    printf("Patikrinta variantų:           %d\n", nodesChecked);
+    printf("Rasti sprendiniai:             %d\n", bestCount);
+    printf("\nMažiausia bauda, kurią teks sumokėti: %d\n", bestPenalty);
 }
 
-int bestPenalty = INT_MAX;
-
-void fullMatchSearch(Job *jobs, int n){
-    
+int countAllNodes(int n){
+    int total = 1;
+    int prod = 1;
+    for(int k = 1; k <= n; k++){
+        prod *= (n - k + 1);
+        total += prod;
+    }
+    return total;
 }

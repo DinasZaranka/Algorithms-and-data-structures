@@ -1,8 +1,8 @@
-main.exe: main.o branchAndBound.o
-	gcc -o main.exe main.o branchAndBound.o
+main.exe: main.o algorithm.o
+	gcc -o main.exe main.o algorithm.o
 
-main.o: main.c branchAndBound.h
+main.o: main.c algorithm.h
 	gcc -c main.c
 
-branchAndBound.o: branchAndBound.c branchAndBound.h
-	gcc -c branchAndBound.c
+algorithm.o: algorithm.c algorithm.h
+	gcc -c algorithm.c
