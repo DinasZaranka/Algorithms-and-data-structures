@@ -34,7 +34,7 @@ Node pop(Stack *stack) {
     return stack->arr[stack->top--];
 }
 
-void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
+void calculate(Job *jobs, int n,int searchMode,double timeoutMs,clock_t startTime){
     
     // Stat variables
     int nodesChecked = 1;
@@ -54,9 +54,7 @@ void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
         root.schedule[i] = -1;
         jobsWithPenalty[i] = false;
     }
-    
-    // Initializing timer for timeout
-    clock_t startTime = clock();
+
     double elapsed;
     //Create stack that holds all the solutions
     Stack stack;
@@ -65,7 +63,8 @@ void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
     push(&stack,root);
 
     while(!isStackEmpty(&stack)){
-        elapsed = (double)(clock() - startTime) * 1000 / CLOCKS_PER_SEC;
+        clock_t now = clock();
+        elapsed = (double)(now - startTime) * 1000 / CLOCKS_PER_SEC;
         if(timeoutMs > 0 && elapsed >= timeoutMs){
             timeoutReached = true;
             break;
@@ -129,6 +128,10 @@ void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
 
     printf("\n======================================Sprendimai=======================================\n");
 
+    if(bestCount == 0){
+        printf("Programa nesugebėjo surasti sprendimų!\n");
+    }
+
     for(int s = 0; s < bestCount; s++){
         printf("Sprendimas %d:\n", s+1);
         int finishTime = 0;
@@ -160,7 +163,9 @@ void calculate(Job *jobs, int n,int searchMode,int timeoutMs){
         printf("Paieška nutraukta. Pasiektas timeout, išnagrineta %.2f%% variantų\n", percentageChecked);
     }
     printf("\nPrograma užtruko:  %.3f ms.\n", elapsed);
-    printf("\nMažiausia bauda, kurią teks sumokėti: %d\n", bestPenalty);
+    if(bestCount > 0){
+        printf("\nMažiausia bauda, kurią teks sumokėti: %d\n", bestPenalty);
+    }
 }
 
 int countAllNodes(int n){

@@ -63,7 +63,7 @@ typedef struct Job
  *   
  * 
  */
-void calculate(Job *jobs, int n, int searchMode, int timeoutMs);
+void calculate(Job *jobs, int n, int searchMode, double timeoutMs,clock_t startTime);
 
 int countAllNodes(int n);
 

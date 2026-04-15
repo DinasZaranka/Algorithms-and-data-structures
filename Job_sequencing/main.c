@@ -10,8 +10,12 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    clock_t startTime = clock();
     double timeoutMs = 0;
     int searchMode = 2;
+    // searchMode: 1 - fullsearch, 2 - firstMatchSearch
+        
+
     // Searching for file
     FILE *inputFile = stdin;
     for(int i = 1; i < argc; i++){
@@ -101,9 +105,9 @@ int main(int argc, char* argv[]){
     } else if(searchMode == 2){
         printf("Paieškos rėžimas: firstMatchSearch\n");
     }
-    printf("Skaičiavimų laiko apribojimas: \n");
+    printf("Skaičiavimų laiko apribojimas: %.3f ms.\n", timeoutMs);
 
-    calculate(jobs,n,searchMode,timeoutMs);
+    calculate(jobs,n,searchMode,timeoutMs,startTime);
 
 
     free(jobs);
