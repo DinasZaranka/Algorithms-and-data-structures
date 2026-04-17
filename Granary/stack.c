@@ -1,101 +1,66 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "stack.h"
 
-struct IntStack {
-    int size;
-    int capacity;
-    int* data;
-};
-
-IntStack* Create() {
-    IntStack *s = (IntStack *)malloc(sizeof(IntStack));
-    if (s == NULL) return NULL;
-
-    s->size = 0;
-    s->capacity= 0;
-    s->data = NULL;
-    return s;
+void initStack(Stack *s, int initialCapacity) {
+    s->data = (int *)malloc(initialCapacity * sizeof(int));
+    if (s->data == NULL) {
+        exit(1);
+    }
+    s->capacity = initialCapacity;
+    s->top = -1;
 }
 
-void Done(IntStack* s) {
-    free(s->data);
-    free(s);
-};
+bool st_isEmpty(Stack *s) {
+if (s->top == -1) {
+    return true;
+    } else{
+            return false;}
+}
 
-int count(IntStack* s) {
-    return s->size;
-};
+bool st_isFull(Stack *s) {
+    if (s->top == (s->capacity - 1)) {
+    return true;
+    } else{
+            return false;}
+}
 
-int capacity(IntStack* s) {
-    return s->capacity;
-};
-
-int isEmpty(IntStack* s) {
-    return s->size == 0;
-};
-
-int isFull(IntStack* s) {
-    return s->size == s->capacity;
-};
-
-char* toString(IntStack* s) {
-    if (s->data == NULL || s->size == 0) {
-        char* z = malloc(sizeof(char));
-        if (z == NULL) return NULL;
-        *z = '\0';
-        return z;
-    }
-
-    char* buffer = malloc(1024 * sizeof(char));
-    if (buffer == NULL) return NULL;
-    int length = 0;
-    for (int i = 0 ; i < s->size ; i++) {
-        if (length >= 1024 - 1) {
-            break;
+void push(Stack *s, int value) {
+    if (st_isFull(s)) {
+        s->capacity *= 2;
+        s->data = (int *)realloc(s->data, s->capacity * sizeof(int));
+        if (s->data == NULL) {
+            exit(1);
         }
-        length += sprintf(buffer + length, "%d ", s->data[i]);
     }
-    buffer[length] = '\0';
+    s->top++;
+    s->data[s->top] = value;
+}
 
-    return buffer;
-};
-
-int push(IntStack* s, int element) {
-    if (isFull(s)) {
-        s->capacity = (s->capacity == 0) ? 4 : s->capacity * 2;
-
-        int* tmp = realloc(s->data, s->capacity* sizeof(int));
-        if (tmp == NULL) return 1;
-        s->data = tmp;
+int pop(Stack *s) {
+    if (st_isEmpty(s)) {
+        return -1;
     }
-    s->data[s->size] = element;
-    s->size++;
-    return 0;
-};
+    int value = s->data[s->top];
+    s->top--;
+    return value;
+}
 
-int pop(IntStack* s, int* p) {
-    if (s->size == 0) return 1;
-    s->size--;
-    *p = s->data[s->size];
-    return 0;
-};
+void destroyStack(Stack *s) {
+    free(s->data);
+    s->data = NULL;
+    s->top = -1;
+    s->capacity = 0;
+}
 
-IntStack* clone(IntStack* s) {
-    IntStack* tmpStack = Create();
-    if (tmpStack == NULL) return NULL;
+int peek(Stack *s) {
+    if (st_isEmpty(s)) {
+        printf("Stack is empty!\n");
+        return -1;
+    }
+    return s->data[s->top];
+}
 
-    tmpStack->data = malloc(sizeof(int) * s->capacity);
-    if (tmpStack->data == NULL) return NULL;
-
-    tmpStack->size = s->size;
-    tmpStack->capacity = s->capacity;
-
-    memcpy(tmpStack->data, s->data, s->capacity * sizeof(int));
-    return tmpStack;
-};
-
-void makeEmpty(IntStack* s) {
-    s->size = 0;
-};
+int st_count(Stack *s){
+    return (s->top+1);
+}

@@ -1,4 +1,4 @@
- #include "queue.h"
+#include "queue.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -20,12 +20,12 @@ void Done(queue* q) {
 }
 
 void enqueue(queue* q, int reiksme) {
-    if (q == NULL || isFull(q)) return;
+    if (q == NULL || q_isFull(q)) return;
     q->data[q->n++] = reiksme;
 }
 //FIFO
 int dequeue(queue* q) {
-    if (q == NULL || isEmpty(q)) return 0;
+    if (q == NULL || q_isEmpty(q)) return 0;
     int pirmas = q->data[0];
     unsigned int i;
     for (i = 0; i < q->n - 1; i++)
@@ -34,18 +34,32 @@ int dequeue(queue* q) {
     return pirmas;
 }
 
-unsigned int count(queue* q) {
+unsigned int q_count(queue* q) {
     if (q == NULL) return 0;
     return q->n;
 }
 
-unsigned int isEmpty(queue* q) {
-    return count(q) == 0;
+unsigned int q_isEmpty(queue* q) {
+    return q_count(q) == 0;
 }
 
-unsigned int isFull(queue* q) {
+unsigned int q_isFull(queue* q) {
     if (q == NULL) return 0;
     return q->n == q->max;
+}
+
+int q_peek(queue* q) {
+    if (q == NULL || q_isEmpty(q)) {
+        return 0; // Arba kita klaidos reikšmė
+    }
+    return q->data[0];
+}
+
+void q_updateFirst(queue* q, int naujaReiksme) {
+    if (q == NULL || q_isEmpty(q)) {
+        return;
+    }
+    q->data[0] = naujaReiksme;
 }
 
 queue* clone(queue* q) {
@@ -63,7 +77,7 @@ void makeEmpty(queue* q) {
 
 char* toString(queue* q) {
     static char buf[256];
-    if (q == NULL || isEmpty(q)) {
+    if (q == NULL || q_isEmpty(q)) {
         strcpy(buf, "[ tuscia ]");
         return buf;
     }
