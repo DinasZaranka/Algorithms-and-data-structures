@@ -1,5 +1,5 @@
-main.exe: main.o queue.o stack.o granary.o
-	gcc -std=c99 -o main.exe main.o queue.o stack.o granary.o
+granary.exe: main.o queue.o stack.o granary.o
+	gcc -std=c99 -o granary.exe main.o queue.o stack.o granary.o
 
 main.o: main.c granary.h
 	gcc -std=c99 -c main.c
